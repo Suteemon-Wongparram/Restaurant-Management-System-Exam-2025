@@ -464,8 +464,9 @@ cd backend && npm install && npm run dev
 cd frontend && npm install && npm run dev
 ```
 
-> ⚠️ **หมายเหตุเรื่อง Port**: ขั้นตอนกำหนด Backend Port 3001 แต่ URL หลักฐานในข้อสอบระบุ `localhost:3000/api/health`  
-> ให้ตรวจสอบค่า `PORT` ใน `backend/.env.example` ของ Repository จริง แล้วใช้ port ที่ระบบรันจริง
+> ⚠️ **หมายเหตุเรื่อง Port**:
+> - **Local / On-Premises**: ขั้นตอนกำหนด Port 3001 แต่ URL หลักฐานในข้อสอบระบุ `localhost:3000/api/health` ให้ตรวจสอบค่า `PORT` ใน `backend/.env.example` ของ Repository จริง แล้วใช้ port ที่ระบบรันจริง
+> - **Render.com**: Backend รันบน **Port 10000** เสมอ (กำหนดใน `render.yaml` และ Render Dashboard) — `VITE_API_URL` ใช้ `https://[api].onrender.com` โดยไม่ต้องระบุ port
 
 #### การตั้งค่า Service / Port จริงที่ใช้ (Rubric 2.1 ข้อ 2)
 
@@ -592,10 +593,15 @@ docker compose up --build
 
 #### Backend บน Render.com
 
+> 📌 Repository มีไฟล์ `render.yaml` ที่ root — สามารถใช้ **New Blueprint** บน Render Dashboard เพื่อ Deploy อัตโนมัติจากไฟล์นี้แทนการตั้งค่าทีละอย่าง
+
 ```
-Build Command:  npm install && npx prisma generate && npm run build
-Start Command:  npx prisma db push && npx tsx prisma/seed.ts && npm start
+Build Command:  docker build -t rms-backend ./backend
+Dockerfile:     ./backend/Dockerfile
+PORT:           10000  ← Render กำหนดให้ใช้ port นี้สำหรับ Docker service
 ```
+
+> ⚠️ **PORT บน Render = 10000** เสมอ ไม่ใช่ 3001 — ต้องตั้งค่า `PORT=10000` ใน Environment Variables บน Render Dashboard ด้วย
 
 #### Frontend บน Vercel
 
@@ -613,6 +619,7 @@ Build Command:  npm run build
 
 | Variable | Service | ค่าที่ตั้งจริงบน Cloud |
 |----------|---------|----------------------|
+| `PORT` | Backend (Render) | `10000` |
 | `DATABASE_URL` | Backend (Render) | |
 | `JWT_SECRET` | Backend (Render) | (ตั้งค่าแล้ว — ไม่ระบุ) |
 | `CORS_ORIGIN` | Backend (Render) | `https://[ชื่อ app ของตนเอง].vercel.app` |
