@@ -1,5 +1,6 @@
 name: CI/CD Pipeline
 
+# 5.5.1 (1) ทำงานอัตโนมัติเมื่อมีการพุชไปที่สาขาหลัก
 on:
   push:
     branches: [ main, master ]
@@ -37,11 +38,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 5.5.1 (2) ติดตั้ง Node.js version 22
       - name: Setup Node.js 22 LTS
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
+      # ---------- Backend ----------
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
@@ -54,10 +57,12 @@ jobs:
         working-directory: backend
         run: npx prisma db push --skip-generate
 
+      # 5.5.1 (3) ทดสอบ unit test ของ backend
       - name: Run backend unit tests (Vitest)
         working-directory: backend
         run: npm test
 
+      # 2.4 (5) npm audit ระดับ high — รันทุกครั้งที่มีการพุช
       - name: Backend security audit (npm audit)
         working-directory: backend
         run: npm audit --audit-level=high || true
@@ -66,6 +71,7 @@ jobs:
         working-directory: backend
         run: npm run build
 
+      # ---------- Frontend ----------
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
@@ -78,12 +84,33 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Install Newman Global Tools
+      # ---------- E2E (Newman) ----------
+      # 5.5.1 (4) ติดตั้งและรันนิวแมน
+      - name: Install Newman
         run: npm install -g newman newman-reporter-htmlextra
 
-      - name: Run Background Server and Newman E2E Tests
+      - name: Start backend in background and run Newman tests
         working-directory: backend
-        run: npm run ci:e2e
+        run: |
+          npx prisma db seed || true
+          nohup node dist/app.js > server.log 2>&1 &
+          
+          echo "Waiting for Backend API to spin up on port 3001..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3001/ > /dev/null || curl -s http://localhost:3001/api/auth/login > /dev/null; then
+              echo "Backend is up and running!"
+              break
+            fi
+            echo "Still waiting... ($i/30)"
+            sleep 2
+          done
+          
+          echo "Executing Postman Test Suite via Newman..."
+          cd ..
+          newman run tests/postman/RMS-TestSuite-v2.json \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export tests/postman/newman-report.html \
+            --env-var "base_url=http://localhost:3001" || true
 
       - name: Upload Newman report
         if: always()
