@@ -58,6 +58,10 @@ jobs:
       run: cd frontend && npm run build
 
 
+    
+
+
+
     - name: Run Backend Server for Newman in Background
       run: |
         cd backend
@@ -71,5 +75,5 @@ jobs:
 
     - name: Run Newman Postman Test Suite
       run: |
-        npx newman run 'backend/tests/postman/RMS-[68030300]-TestSuite.postman_collection.json' \
+        npx newman run 'tests/postman/RMS-[68030300]-TestSuite.postman_collection.json' \
           --env-var "base_url=http://localhost:3001"
