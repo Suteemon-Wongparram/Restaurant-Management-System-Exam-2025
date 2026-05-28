@@ -57,21 +57,27 @@ jobs:
     - name: Run frontend build
       run: cd frontend && npm run build
 
-
-    
-
-
-
-    - name: Run Backend Server for Newman in Background
+    - name: Start Backend Server in Background for Newman
       run: |
         cd backend
         npm run start &
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rms_test
         PORT: 3001
+        NODE_ENV: test
 
     - name: Wait for Backend API to be fully ready
-      run: npx wait-on http://localhost:3001/api/auth/login --timeout 60000
+      run: |
+        for i in {1..30}; do
+          if curl -s http://localhost:3001/api/auth/login > /dev/null; then
+            echo "Backend is ready!"
+            exit 0
+          fi
+          echo "Waiting for Backend to start... ($i/30)"
+          sleep 2
+        done
+        echo "Backend failed to start in time"
+        exit 1
 
     - name: Run Newman Postman Test Suite
       run: |
