@@ -56,3 +56,22 @@ jobs:
 
     - name: Run frontend build
       run: cd frontend && npm run build
+
+      - name: Run Backend Server for Newman in Background
+      run: |
+        cd backend
+        npm run start &
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rms_test
+        PORT: 3001
+
+    - name: Wait for Backend to be Ready
+      run: npx wait-on http://localhost:3001/api/auth/login --timeout 30000
+
+    - name: Install Newman
+      run: npm install -g newman
+
+    - name: Run Newman Postman Test Suite
+      run: |
+        newman run 'backend/tests/postman/RMS-[68030300]-TestSuite.postman_collection.json' \
+          --env-var "base_url=http://localhost:3001"
