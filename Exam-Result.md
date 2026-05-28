@@ -42,10 +42,10 @@
 
 | Service | URL (กรอก URL จริง) | สถานะ |
 |---------|---------------------|-------|
-| Frontend (Vercel) | | ☐ |
-| Backend (Render) | | ☐ |
-| API Health Check (`/api/health`) | | ☐ |
-| Database (Neon.tech connection string) | | ☐ |
+| Frontend (Vercel) |https://restaurant-management-system-exam-2-weld.vercel.app| ✅ |
+| Backend (Render) |https://rms-backend-api-57p0.onrender.com| ✅ |
+| API Health Check (`/api/health`) |https://rms-backend-api-57p0.onrender.com/api/health| ✅ |
+| Database (Neon.tech connection string) |postgresql://neondb_owner:npg_jPTDq8L3xhAr@ep-weathered-math-apqq3d4x-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require| ✅|
 
 ---
 
